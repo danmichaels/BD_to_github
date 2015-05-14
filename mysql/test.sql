@@ -1,0 +1,2 @@
+select * from LOCALMONEYTRANSFER ('', 100.0, 1089, 1352);
+
