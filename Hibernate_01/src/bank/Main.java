@@ -180,8 +180,8 @@ public class Main {
             l_clients.add(client);
             clientsDAO.displayResultClients(l_clients);
             
-            // Добавляются в базу
-            // bill_id
+            // Добавляются в базу карты клиента
+            // bill_id, date, client
             cardDAO.addCard(2,Date.valueOf("2015-04-27"),client);
             cardDAO.addCard(3,Date.valueOf("2015-04-26"),client);
             cardDAO.addCard(4,Date.valueOf("2015-04-26"),client);
@@ -216,62 +216,6 @@ public class Main {
                 System.out.println(":::::::::Number: "+p.getNumber()+" client_id: "+p.getClient_id()+" start_date: "+p.getStart_date());
             }
             session.getTransaction().commit();
-            
-            // Проверка отношения One-To-Many до вызова процедуры ADD_PERCENTS_CREDIT
-            
-            System.out.println(":::::::::Selecting credits by bill");
-            
-            session = HibernateUtil.getSessionFactory().getCurrentSession();
-            session.beginTransaction();
-            
-            List<Bill> first_bill = billDAO.listFirstBill(5);
-            Bill check_bill = first_bill.get(3);
-            Set<Credits> result_credits = check_bill.getCredits();
-            session.getTransaction().commit();
-            
-            /*
-            EntityManagerFactory emf = Persistence.createEntityManagerFactory("helloworld");
-            
-            
-            EntityManager em2 = emf.createEntityManager();
-            em2.getTransaction().begin();
-
-            List<Credits> res = (Credits) em2.find(Credits.class, check_bill.getId());
-            System.out.println(res.getMsg()
-                            + res.getEntities2().iterator().next().getMsg());
-            em2.getTransaction().commit();
-            em2.close();
-            */
-            
-            for(Credits p : result_credits) {
-                System.out.println(":::::::::Bill_id: "+p.getBill_id()+
-                        " rate: "+p.getRate()+
-                        " start_date: "+p.getStart_date()+
-                        " period:"+p.getPeriod()+
-                        " last_update: "+p.getLast_update()
-                );
-            }
-            
-            session = HibernateUtil.getSessionFactory().getCurrentSession();
-            session.beginTransaction();
-            session.createSQLQuery("CALL ADD_PERCENTS_CREDIT("+check_bill.getId()+")").executeUpdate();
-            session.getTransaction().commit();
-            
-            session = HibernateUtil.getSessionFactory().getCurrentSession();
-            session.beginTransaction();
-            first_bill = billDAO.listFirstBill(5);
-            check_bill = first_bill.get(3);
-            result_credits = check_bill.getCredits();
-            session.getTransaction().commit();
-            
-            for(Credits p : result_credits) {
-                System.out.println(":::::::::Bill_id: "+p.getBill_id()+
-                        " rate: "+p.getRate()+
-                        " start_date: "+p.getStart_date()+
-                        " period:"+p.getPeriod()+
-                        " last_update: "+p.getLast_update()
-                );
-            }
             
             /*
             session = HibernateUtil.getSessionFactory().getCurrentSession();
@@ -316,7 +260,7 @@ public class Main {
             em2.close();
             */
             
-            // Проверка связи Bill - Operations
+            // Проверка связи Bill (one) - Operations (many)
             
             System.out.println(":::::::::First several of Bill: ");
             
@@ -326,11 +270,12 @@ public class Main {
             List<Operations> l_oper = new ArrayList();
             List<Operations> out_operations = new ArrayList();
             
-            first_bill = billDAO.listFirstBill(5);
-            check_bill = first_bill.get(3);
+            List<Bill> first_bill = billDAO.listFirstBill(5);
+            Bill check_bill = first_bill.get(3);
+            
             //Set<Operations> result_oper = check_bill.getOperations();
             
-            
+            // Проверка отношения One-To-Many до вызова процедуры
             // Получаем все операции для счета
             l_oper = operationsDAO.listOperations(check_bill.getId());
             check_bill.setOperations(l_oper);
@@ -379,6 +324,7 @@ public class Main {
             session.createSQLQuery("CALL LOCALMONEYTRANSFER("+"'info'"+","+10+","+check_bill.getId()+","+(check_bill.getId()+1)+")").executeUpdate();
             session.getTransaction().commit();
             
+            // Получение операций по счету
             System.out.println(":::::::::Selecting operations by bill");
             
             session = HibernateUtil.getSessionFactory().getCurrentSession();
